@@ -332,6 +332,12 @@
   opacity: 0.75;
 }
 
+/* row-reverse flips the visual order (minute ends up at the outer edge) without
+   touching DOM order, so this mirrors the home column without any markup change. */
+.subsColRight .subRow {
+  flex-direction: row-reverse;
+}
+
 .shootout {
   margin-top: 16px;
   padding: 12px 14px;

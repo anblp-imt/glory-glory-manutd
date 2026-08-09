@@ -196,7 +196,7 @@ export default function MatchDetailClient() {
                 </div>
               ))}
             </div>
-            <div>
+            <div className={styles.subsColRight}>
               {subs.away.map((s, i) => (
                 <div className={styles.subRow} key={i}>
                   <span className={styles.subMin}>{s.min}</span>

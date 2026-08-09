@@ -303,6 +303,36 @@ describe('MatchDetailClient', () => {
     expect(screen.getByText('3 – 4')).toBeInTheDocument();
   });
 
+  it('right-aligns the away team\'s substitutions column to mirror the home column', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        header: {
+          competitions: [{
+            status: { type: { state: 'post' } },
+            competitors: [
+              { homeAway: 'home', team: { id: '331', displayName: 'Brighton & Hove Albion' }, score: '1' },
+              { homeAway: 'away', team: { id: '360', displayName: 'Manchester United' }, score: '1' },
+            ],
+          }],
+        },
+        rosters: [],
+        keyEvents: [{
+          type: { type: 'substitution' }, clock: { displayValue: "60'", value: 3600 },
+          team: { id: '360' }, participants: [{ athlete: { displayName: 'Amad Diallo' } }, { athlete: { displayName: 'Antony' } }],
+        }],
+      }),
+    }));
+
+    const { container } = render(<MatchDetailClient />);
+    await act(async () => { await Promise.resolve(); });
+
+    const subsGrid = container.querySelector('[class*="subsGrid"]');
+    const [homeCol, awayCol] = Array.from(subsGrid?.children || []);
+    expect(homeCol?.className).not.toMatch(/subsColRight/);
+    expect(awayCol?.className).toMatch(/subsColRight/);
+  });
+
   it('omits stats/substitutions/shootout sections when the detail has none of that data', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
       ok: true,
