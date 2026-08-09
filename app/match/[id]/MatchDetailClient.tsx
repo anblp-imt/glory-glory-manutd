@@ -3,8 +3,10 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { usePolling } from '@/hooks/usePolling';
 import { FormationPitch } from '@/components/FormationPitch';
+import { WinFireworks } from '@/components/WinFireworks';
 import { extractScorers, extractStats, extractSubstitutions, extractShootout, extractGoalContributions } from '@/lib/merge';
 import { displayTeamName } from '@/lib/normalize';
+import { manUtdWon, isWithinCelebrationWindow } from '@/lib/celebration';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { LIVE_TTL_MS, STATIC_TTL_MS } from '@/lib/cache';
 import type { EspnDetail } from '@/lib/types';
@@ -90,10 +92,12 @@ export default function MatchDetailClient() {
   const home = rosters.find(r => r.homeAway === 'home');
   const away = rosters.find(r => r.homeAway === 'away');
   const matchState = headerComp?.status?.type?.state;
+  const celebrate = matchState === 'post' && manUtdWon(data) && isWithinCelebrationWindow(headerComp?.date, new Date());
   const subCount = subs.home.length + subs.away.length;
 
   return (
     <main className={styles.main}>
+      {celebrate && <WinFireworks />}
       <div className={styles.titleRow}>
         <h1 className={styles.title}>Match #{params.id}</h1>
         <div className={styles.refreshGroup}>

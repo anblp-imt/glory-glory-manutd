@@ -443,4 +443,104 @@ describe('MatchDetailClient', () => {
     await act(async () => { await Promise.resolve(); });
     expect(screen.getByRole('alert')).toBeInTheDocument();
   });
+
+  it('shows fireworks when Manchester United have won and the match is still within the celebration window', async () => {
+    vi.setSystemTime(new Date('2026-08-08T17:00:00Z')); // 2 hours after kickoff
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        header: {
+          competitions: [{
+            date: '2026-08-08T15:00:00Z',
+            status: { type: { state: 'post' } },
+            competitors: [
+              { homeAway: 'home', team: { id: '331', displayName: 'Brighton & Hove Albion' }, score: '1' },
+              { homeAway: 'away', team: { id: '360', displayName: 'Manchester United' }, score: '2' },
+            ],
+          }],
+        },
+        rosters: [],
+      }),
+    }));
+
+    const { container } = render(<MatchDetailClient />);
+    await act(async () => { await Promise.resolve(); });
+
+    expect(container.querySelector('canvas')).not.toBeNull();
+  });
+
+  it('shows no fireworks when Manchester United lose', async () => {
+    vi.setSystemTime(new Date('2026-08-08T17:00:00Z'));
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        header: {
+          competitions: [{
+            date: '2026-08-08T15:00:00Z',
+            status: { type: { state: 'post' } },
+            competitors: [
+              { homeAway: 'home', team: { id: '331', displayName: 'Brighton & Hove Albion' }, score: '2' },
+              { homeAway: 'away', team: { id: '360', displayName: 'Manchester United' }, score: '1' },
+            ],
+          }],
+        },
+        rosters: [],
+      }),
+    }));
+
+    const { container } = render(<MatchDetailClient />);
+    await act(async () => { await Promise.resolve(); });
+
+    expect(container.querySelector('canvas')).toBeNull();
+  });
+
+  it('shows no fireworks for a scoreless draw with no penalty shootout', async () => {
+    vi.setSystemTime(new Date('2026-08-08T17:00:00Z'));
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        header: {
+          competitions: [{
+            date: '2026-08-08T15:00:00Z',
+            status: { type: { state: 'post' } },
+            competitors: [
+              { homeAway: 'home', team: { id: '331', displayName: 'Brighton & Hove Albion' }, score: '1' },
+              { homeAway: 'away', team: { id: '360', displayName: 'Manchester United' }, score: '1' },
+            ],
+          }],
+        },
+        rosters: [],
+      }),
+    }));
+
+    const { container } = render(<MatchDetailClient />);
+    await act(async () => { await Promise.resolve(); });
+
+    expect(container.querySelector('canvas')).toBeNull();
+  });
+
+  it('shows no fireworks once the celebration window has passed', async () => {
+    vi.setSystemTime(new Date('2026-08-11T12:00:00Z')); // 3 days after kickoff
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        header: {
+          competitions: [{
+            date: '2026-08-08T15:00:00Z',
+            status: { type: { state: 'post' } },
+            competitors: [
+              { homeAway: 'home', team: { id: '331', displayName: 'Brighton & Hove Albion' }, score: '1' },
+              { homeAway: 'away', team: { id: '360', displayName: 'Manchester United' }, score: '2' },
+            ],
+          }],
+        },
+        rosters: [],
+      }),
+    }));
+
+    const { container } = render(<MatchDetailClient />);
+    await act(async () => { await Promise.resolve(); });
+
+    expect(container.querySelector('canvas')).toBeNull();
+  });
 });

@@ -204,6 +204,7 @@ export interface EspnShootoutTeam {
 export interface EspnDetail {
   header: {
     competitions: Array<{
+      date?: string;
       status: { type: { state: 'pre' | 'in' | 'post'; name?: string }; displayClock?: string };
       details?: EspnScoringDetail[];
       competitors?: Array<{
