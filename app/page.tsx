@@ -58,6 +58,7 @@ export default function SchedulePage() {
     scrolledToTodayRef.current = true;
   }, [data]);
 
+  if (error && !data) return <p role="alert">{error.message}</p>;
   if (!data) return <LoadingSpinner />;
   const filtered: typeof data.matches = selected === 'ALL'
     ? data.matches

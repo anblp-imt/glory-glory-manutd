@@ -42,6 +42,7 @@ export default function StatsClient() {
     refetchLeaders();
   };
 
+  if (matchesError && !data) return <p role="alert">{matchesError.message}</p>;
   if (!data) return <LoadingSpinner />;
 
   // Season stats are a competitive-record view — pre-season/mid-season friendlies don't

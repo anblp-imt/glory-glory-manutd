@@ -17,6 +17,14 @@ export function getCached<T>(key: string): T | undefined {
   return entry.value as T;
 }
 
+// Unlike getCached, ignores expiry — entries stay in `store` after they expire (setCached
+// only ever overwrites, nothing deletes on expiry), so this is a free way to reach last
+// known good data. For upstream sources that fail intermittently (see lib/matches.ts,
+// lib/news.ts, app/api/team/route.ts): serving stale-but-real data beats serving nothing.
+export function getStale<T>(key: string): T | undefined {
+  return store.get(key)?.value as T | undefined;
+}
+
 export function setCached<T>(key: string, value: T, ttlMs: number): void {
   store.set(key, { value, expiresAt: Date.now() + ttlMs });
 }

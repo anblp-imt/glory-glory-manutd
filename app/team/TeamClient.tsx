@@ -17,6 +17,8 @@ export default function TeamClient() {
   const { data, loading, refetch, lastSyncedAt, error } = usePolling(fetchTeam, null, { key: 'team', ttlMs: STATIC_TTL_MS });
   const groups = data?.groups ?? [];
 
+  if (error && !data) return <p role="alert">{error.message}</p>;
+
   return (
     <main className={styles.main}>
       <PageHeading

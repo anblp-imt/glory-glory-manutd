@@ -1,7 +1,7 @@
 import { fetchBbcNews } from './newsBbc';
 import { fetchGuardianNews } from './newsGuardian';
 import { fetchEspnNews } from './newsEspn';
-import { getCached, setCached, NEWS_TTL_MS } from './cache';
+import { getCached, getStale, setCached, NEWS_TTL_MS } from './cache';
 import type { NewsArticle } from './types';
 
 const CACHE_KEY = 'news';
@@ -23,10 +23,19 @@ export async function getNews(force = false): Promise<NewsArticle[]> {
 
   const allFailed = results.every(r => r.status === 'rejected');
 
-  const articles = results
+  let articles = results
     .filter((r): r is PromiseFulfilledResult<NewsArticle[]> => r.status === 'fulfilled')
-    .flatMap(r => r.value)
-    .sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
+    .flatMap(r => r.value);
+
+  // ESPN is its own promise slot (index 2) — a rejection there (e.g. its bot-protection
+  // returning a transient 403, see lib/espn.ts) would otherwise make ESPN articles vanish
+  // from the list outright rather than just going stale for one poll cycle.
+  if (results[2].status === 'rejected') {
+    const stale = getStale<NewsArticle[]>(CACHE_KEY) ?? [];
+    articles = [...articles, ...stale.filter(a => a.source === 'ESPN')];
+  }
+
+  articles = articles.sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
 
   // Deduplicate: RSS feeds can return the same article URL more than once
   // (e.g. BBC's general feed filtered for MU mentions). Same (source, url) → same id.
