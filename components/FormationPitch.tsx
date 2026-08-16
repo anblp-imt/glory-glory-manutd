@@ -89,8 +89,8 @@ export function FormationPitch({
   const awayIsMu = isManUtd(awayRoster?.team?.displayName || '');
   const homeColor = homeRoster?.team?.color ? `#${homeRoster.team.color}` : undefined;
   const awayColor = awayRoster?.team?.color ? `#${awayRoster.team.color}` : undefined;
-  const homeSubs = homeRoster?.roster.filter(p => !p.starter) || [];
-  const awaySubs = awayRoster?.roster.filter(p => !p.starter) || [];
+  const homeSubs = homeRoster?.roster?.filter(p => !p.starter) || [];
+  const awaySubs = awayRoster?.roster?.filter(p => !p.starter) || [];
   const homeCrest = teamCrestUrl(homeRoster?.team);
   const awayCrest = teamCrestUrl(awayRoster?.team);
 

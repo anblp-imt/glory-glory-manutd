@@ -170,7 +170,9 @@ export interface EspnRoster {
   homeAway: 'home' | 'away';
   team?: { displayName?: string; color?: string; abbreviation?: string; logos?: Array<{ href: string; rel?: string[] }> };
   formation?: string;
-  roster: EspnRosterPlayer[];
+  // ESPN omits this for fixtures that haven't kicked off yet — lineups aren't published
+  // until close to kickoff.
+  roster?: EspnRosterPlayer[];
 }
 
 export interface EspnTeamAthlete {
