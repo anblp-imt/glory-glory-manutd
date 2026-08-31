@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { recentForm, standingsAroundMu } from './standings';
+import { formatGoalDifference, recentForm, standingsAroundMu } from './standings';
 import type { Match, StandingRow } from './types';
 
 function row(position: number, teamName: string): StandingRow {
-  return { position, team: { name: teamName }, playedGames: 10, won: 0, draw: 0, lost: 0, points: 0, goalDifference: 0 };
+  return { position, team: { name: teamName }, playedGames: 10, won: 0, draw: 0, lost: 0, goalsFor: 0, goalsAgainst: 0, goalDifference: 0, points: 0 };
 }
 
 function match(id: string, utcDate: string, competition: Match['competition'], status: Match['status'], venue: 'H' | 'A', homeScore: number | null, awayScore: number | null): Match {
@@ -72,5 +72,19 @@ describe('standingsAroundMu', () => {
   it('returns an empty array when MU is not present in the standings', () => {
     const table = [row(1, 'A'), row(2, 'B')];
     expect(standingsAroundMu(table, 2)).toEqual([]);
+  });
+});
+
+describe('formatGoalDifference', () => {
+  it('prefixes a positive goal difference with a plus sign', () => {
+    expect(formatGoalDifference(19)).toBe('+19');
+  });
+
+  it('keeps the minus sign on a negative goal difference', () => {
+    expect(formatGoalDifference(-16)).toBe('-16');
+  });
+
+  it('renders a level goal difference as a bare zero, with no sign', () => {
+    expect(formatGoalDifference(0)).toBe('0');
   });
 });

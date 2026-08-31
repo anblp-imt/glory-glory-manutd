@@ -39,8 +39,10 @@ export interface StandingRow {
   won: number;
   draw: number;
   lost: number;
-  points: number;
+  goalsFor: number;
+  goalsAgainst: number;
   goalDifference: number;
+  points: number;
 }
 
 export interface MatchesResponse {
@@ -116,8 +118,10 @@ export interface FdStandingRow {
   won: number;
   draw: number;
   lost: number;
-  points: number;
+  goalsFor: number;
+  goalsAgainst: number;
   goalDifference: number;
+  points: number;
 }
 
 export interface FdSquadPlayer {

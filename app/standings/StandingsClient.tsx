@@ -5,7 +5,7 @@ import { CupRun } from '@/components/CupRun';
 import { PageHeading } from '@/components/PageHeading';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { displayTeamName, isManUtd } from '@/lib/normalize';
-import { recentForm, standingsAroundMu } from '@/lib/standings';
+import { formatGoalDifference, recentForm, standingsAroundMu } from '@/lib/standings';
 import { COMPETITIONS, getCompetition, visibleCompetitions } from '@/lib/competitions';
 import { usePolling } from '@/hooks/usePolling';
 import { getCached, setCached, LIVE_TTL_MS, STATIC_TTL_MS } from '@/lib/cache';
@@ -17,6 +17,31 @@ async function fetchMatches(force = false): Promise<MatchesResponse> {
   const res = await fetch(`/api/matches${force ? '?force=1' : ''}`);
   if (!res.ok) throw new Error('Failed to load matches');
   return res.json();
+}
+
+// Signed and colour-coded together: the sign carries on a greyscale printout or for a
+// red-green colour-blind reader, the colour carries when the table is being scanned
+// rather than read. Neither is the only channel.
+function goalDiffClass(goalDifference: number): string {
+  if (goalDifference > 0) return `${styles.gdCell} ${styles.gdPos}`;
+  if (goalDifference < 0) return `${styles.gdCell} ${styles.gdNeg}`;
+  return styles.gdCell;
+}
+
+// The mobile card list is the only view under 640px (the table is display:none there),
+// so the full record has to fit a phone column rather than eleven table columns: the
+// W-D-L record as one hyphenated cluster, goals as a scoreline, then the signed
+// difference. Each part is its own element so the digits never run together when read
+// aloud by a screen reader.
+function StatLine({ row }: { row: StandingRow }) {
+  return (
+    <span className={styles.statLine}>
+      <span>{`${row.won}-${row.draw}-${row.lost}`}</span>
+      <span className={styles.statSep} aria-hidden="true">·</span>
+      <span>{`${row.goalsFor}:${row.goalsAgainst}`}</span>
+      <span className={goalDiffClass(row.goalDifference)}>{formatGoalDifference(row.goalDifference)}</span>
+    </span>
+  );
 }
 
 function FormDots({ form }: { form: ('W' | 'D' | 'L')[] }) {
@@ -131,6 +156,7 @@ export default function StandingsClient() {
                         <span className={styles.position}>{row.position}</span>
                         <span className={styles.rowMain}>
                           <span className={isMu ? styles.muName : undefined}>{displayTeamName(row.team.name)}</span>
+                          <StatLine row={row} />
                         </span>
                         <span className={styles.rowStats}>
                           <span className={styles.points}>{row.points}</span>
@@ -142,27 +168,52 @@ export default function StandingsClient() {
                 </ul>
               </div>
             )}
-            <table className={styles.tableDesktop}>
-              <thead>
-                <tr>
-                  <th>#</th><th>Team</th><th>P</th><th>Form</th><th>Pts</th>
-                </tr>
-              </thead>
-              <tbody>
-                {standings.map(row => {
-                  const isMu = isManUtd(row.team.name);
-                  return (
-                    <tr key={row.team.name} className={isMu ? styles.muRow : undefined}>
-                      <td className={styles.posCell}>{row.position}</td>
-                      <td className={isMu ? styles.muName : undefined}>{displayTeamName(row.team.name)}</td>
-                      <td className={styles.playedCell}>{row.playedGames}</td>
-                      <td>{isMu ? <FormDots form={muForm} /> : <span className={styles.formPlaceholder}>—</span>}</td>
-                      <td className={styles.ptsCell}>{row.points}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+            {/* At the narrow end of the desktop range the eleven columns are wider than
+                the content area; the table scrolls inside its own box so the page body
+                never scrolls sideways with it. */}
+            <div className={styles.tableScroll}>
+              <table className={styles.tableDesktop}>
+                <thead>
+                  {/* Abbreviations follow the Premier League's own table (P/W/D/L/GF/GA/GD/Pts)
+                      rather than any FIFA standard — FIFA's regulations spell the terms out and
+                      define no abbreviations. `title` spells each one out for anyone who reads
+                      the column heads rather than recognising them. */}
+                  <tr>
+                    <th>#</th>
+                    <th>Team</th>
+                    <th className={styles.statHead} title="Played">P</th>
+                    <th className={styles.statHead} title="Won">W</th>
+                    <th className={styles.statHead} title="Drawn">D</th>
+                    <th className={styles.statHead} title="Lost">L</th>
+                    <th className={styles.statHead} title="Goals for">GF</th>
+                    <th className={styles.statHead} title="Goals against">GA</th>
+                    <th className={styles.statHead} title="Goal difference">GD</th>
+                    <th className={styles.statHead} title="Points">Pts</th>
+                    <th>Form</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {standings.map(row => {
+                    const isMu = isManUtd(row.team.name);
+                    return (
+                      <tr key={row.team.name} className={isMu ? styles.muRow : undefined}>
+                        <td className={styles.posCell}>{row.position}</td>
+                        <td className={isMu ? styles.muName : undefined}>{displayTeamName(row.team.name)}</td>
+                        <td className={styles.playedCell}>{row.playedGames}</td>
+                        <td className={styles.statCell}>{row.won}</td>
+                        <td className={styles.statCell}>{row.draw}</td>
+                        <td className={styles.statCell}>{row.lost}</td>
+                        <td className={styles.statCell}>{row.goalsFor}</td>
+                        <td className={styles.statCell}>{row.goalsAgainst}</td>
+                        <td className={goalDiffClass(row.goalDifference)}>{formatGoalDifference(row.goalDifference)}</td>
+                        <td className={styles.ptsCell}>{row.points}</td>
+                        <td>{isMu ? <FormDots form={muForm} /> : <span className={styles.formPlaceholder}>—</span>}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
             <ul className={styles.listMobile}>
               {standings.map(row => {
                 const isMu = isManUtd(row.team.name);
@@ -171,7 +222,10 @@ export default function StandingsClient() {
                     <span className={styles.position}>{row.position}</span>
                     <span className={styles.rowMain}>
                       <span className={isMu ? styles.muName : undefined}>{displayTeamName(row.team.name)}</span>
-                      {isMu ? <FormDots form={muForm} /> : <span className={styles.formPlaceholder}>—</span>}
+                      {/* Only MU has form data, and on a phone a column of em dashes is
+                          noise rather than information — non-MU cards simply omit the row. */}
+                      {isMu && <FormDots form={muForm} />}
+                      <StatLine row={row} />
                     </span>
                     <span className={styles.rowStats}>
                       <span className={styles.points}>{row.points}</span>

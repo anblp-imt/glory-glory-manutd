@@ -27,3 +27,10 @@ export function standingsAroundMu(standings: StandingRow[], windowSize = 2): Sta
   const end = Math.min(standings.length, muIndex + windowSize + 1);
   return standings.slice(start, end);
 }
+
+// League tables sign the goal difference so a squad's margin reads at a glance: "+9"
+// beats "9" when the column next to it might be "-16". Zero stays bare — "+0" reads as
+// a rounding artefact rather than a level record.
+export function formatGoalDifference(goalDifference: number): string {
+  return goalDifference > 0 ? `+${goalDifference}` : String(goalDifference);
+}

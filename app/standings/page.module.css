@@ -203,3 +203,51 @@
     display: block;
   }
 }
+
+/* --- Full league table: eleven columns where there used to be five --- */
+
+.tableScroll {
+  overflow-x: auto;
+}
+
+/* Numbers right-align so digits stack into readable columns, and stay on one line so a
+   narrow viewport wraps nothing mid-figure. The team name keeps the leftover width. */
+.tableDesktop th.statHead,
+.tableDesktop td.statCell,
+.tableDesktop td.gdCell,
+.tableDesktop td.playedCell,
+.tableDesktop td.ptsCell {
+  text-align: right;
+  padding-left: 3px;
+  padding-right: 7px;
+  white-space: nowrap;
+}
+
+.tableDesktop td:nth-child(2) {
+  min-width: 130px;
+}
+
+.statCell,
+.gdCell {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.gdPos { color: var(--mu-green); }
+.gdNeg { color: #E8776C; }
+
+/* Mobile card equivalent of the table's stat columns: "8-3-3 · 24:15 +9". */
+.statLine {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.02em;
+  color: rgba(237, 230, 214, 0.6);
+  font-variant-numeric: tabular-nums;
+}
+
+.statSep {
+  opacity: 0.4;
+}
